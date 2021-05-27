@@ -25,9 +25,11 @@ git init
 ```bash
 dvc init 
 ```
+For Data to be tracked
 ```bash
 dvc add data_given/winequality.csv
 ```
+For git to track 
 ```bash
 git add .
 ```
