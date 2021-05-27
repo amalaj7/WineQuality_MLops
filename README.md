@@ -52,7 +52,7 @@ Tox command -
 ```bash
 tox
 ```
-For rebuilding -
+For Updation -
 ```bash
 tox -r 
 ```
