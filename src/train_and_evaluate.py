@@ -1,9 +1,6 @@
-# load the train and test
-# train algo
-# save the metrices, params
+# Load the train and test, Train Model,Save the metrices, params
+
 import os
-import warnings
-import sys
 import pandas as pd
 import numpy as np
 from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
@@ -22,7 +19,7 @@ def eval_metrics(actual, pred):
     return rmse, mae, r2
 
 def train_and_evaluate(config_path):
-    config = read_params(config_path)
+    config = read_params(config_path)                                   # Read the config file and load necessary stuffs .
     test_data_path = config["split_data"]["test_path"]
     train_data_path = config["split_data"]["train_path"]
     random_state = config["base"]["random_state"]
@@ -31,26 +28,26 @@ def train_and_evaluate(config_path):
     alpha = config["estimators"]["ElasticNet"]["params"]["alpha"]
     l1_ratio = config["estimators"]["ElasticNet"]["params"]["l1_ratio"]
 
-    target = [config["base"]["target_col"]]
+    target = [config["base"]["target_col"]]                              # Class / Outcome
 
     train = pd.read_csv(train_data_path, sep=",")
     test = pd.read_csv(test_data_path, sep=",")
 
-    train_y = train[target]
-    test_y = test[target]
+    train_y = train[target]                          # Y train
+    test_y = test[target]                            # Y test
 
-    train_x = train.drop(target, axis=1)
-    test_x = test.drop(target, axis=1)
+    train_x = train.drop(target, axis=1)             # X train
+    test_x = test.drop(target, axis=1)               # X Test
 
     lr = ElasticNet(
         alpha=alpha, 
         l1_ratio=l1_ratio, 
         random_state=random_state)
-    lr.fit(train_x, train_y)
+    lr.fit(train_x, train_y)                          # Model Fitting
 
     predicted_qualities = lr.predict(test_x)
     
-    (rmse, mae, r2) = eval_metrics(test_y, predicted_qualities)
+    (rmse, mae, r2) = eval_metrics(test_y, predicted_qualities)            # Returns rmse,mae,r2 score
 
     print("Elasticnet model (alpha=%f, l1_ratio=%f):" % (alpha, l1_ratio))
     print("  RMSE: %s" % rmse)
@@ -58,7 +55,7 @@ def train_and_evaluate(config_path):
     print("  R2: %s" % r2)
 
 #####################################################
-    scores_file = config["reports"]["scores"]
+    scores_file = config["reports"]["scores"]                            # Reading from the params.yml file
     params_file = config["reports"]["params"]
 
     with open(scores_file, "w") as f:
@@ -75,6 +72,7 @@ def train_and_evaluate(config_path):
             "l1_ratio": l1_ratio,
         }
         json.dump(params, f, indent=4)
+
 #####################################################
 
 
