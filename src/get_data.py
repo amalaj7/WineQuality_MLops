@@ -6,9 +6,9 @@ import pandas as pd
 import argparse
 
 def read_params(config_path):
-    with open(config_path) as yaml_file:
+    with open(config_path) as yaml_file:       # TO read the config(params.yaml) file
         config = yaml.safe_load(yaml_file)     # Parse YAML document and produce the corresponding Python object
-    return config
+    return config                              # Return the config file
 
 def get_data(config_path):
     config = read_params(config_path)
@@ -16,7 +16,7 @@ def get_data(config_path):
     data_path = config["data_source"]["s3_source"]          # To get only the datasource - s3_source
     df = pd.read_csv(data_path, sep=",", encoding='utf-8')  # To read the dataset
     #print(df.head())
-    return df
+    return df                                               # Return dataframe
 
 
 
