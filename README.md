@@ -37,31 +37,31 @@ git add .
 git commit -m "first commit"
 ```
 
-oneliner updates  for readme
+One-liner updates  for readme
 
 ```bash
 git add . && git commit -m "update Readme.md"
 ```
 ```bash
-git remote add origin https://github.com/c17hawke/simple-dvc-demo.git
+git remote add origin https://github.com/<USER_ID>/<REPO_NAME>.git
 git branch -M main
 git push origin main
 ```
 
-tox command -
+Tox command -
 ```bash
 tox
 ```
-for rebuilding -
+For rebuilding -
 ```bash
 tox -r 
 ```
-pytest command
+Pytest command
 ```bash
 pytest -v
 ```
 
-setup commands -
+Setup commands -
 ```bash
 pip install -e . 
 ```
