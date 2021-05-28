@@ -19,6 +19,7 @@ Download the data from
 
 https://drive.google.com/drive/folders/18zqQiCJVgF7uzXgfbIJ-04zgz1ItNfF5?usp=sharing
 
+
 ```bash
 git init
 ```
@@ -46,6 +47,10 @@ git add . && git commit -m "update Readme.md"
 git remote add origin https://github.com/<USER_ID>/<REPO_NAME>.git
 git branch -M main
 git push origin main
+```
+To run the Web app
+```bash
+python app.py 
 ```
 
 Tox command -
