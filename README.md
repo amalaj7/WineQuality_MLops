@@ -75,3 +75,11 @@ build your own package commands-
 ```bash
 python setup.py sdist bdist_wheel
 ```
+
+
+```bash
+# to initialize a server and on the other terminal perform dvc repro to see the experiments 
+# This will create a sqllite db , model tracking in UI form .
+
+mlflow server --backend-store-uri sqlite:///mlflow.db --default-artifact-root ./artifacts --host 127.0.0.1 -p 5000
+```
