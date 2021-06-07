@@ -1,15 +1,14 @@
 # Load the train and test, Train Model,Save the metrices, params
 
-import os
 import pandas as pd
 import numpy as np
 from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import ElasticNet
 from get_data import read_params
+from urllib.parse import urlparse
 import argparse
-import joblib
-import json
+import mlflow
 
 
 def eval_metrics(actual, pred):
@@ -18,8 +17,9 @@ def eval_metrics(actual, pred):
     r2 = r2_score(actual, pred)
     return rmse, mae, r2
 
+
 def train_and_evaluate(config_path):
-    config = read_params(config_path)                                   # Read the config file and load necessary stuffs .
+    config = read_params(config_path)
     test_data_path = config["split_data"]["test_path"]
     train_data_path = config["split_data"]["train_path"]
     random_state = config["base"]["random_state"]
@@ -28,63 +28,67 @@ def train_and_evaluate(config_path):
     alpha = config["estimators"]["ElasticNet"]["params"]["alpha"]
     l1_ratio = config["estimators"]["ElasticNet"]["params"]["l1_ratio"]
 
-    target = [config["base"]["target_col"]]                              # Class / Outcome
+    target = [config["base"]["target_col"]]
 
     train = pd.read_csv(train_data_path, sep=",")
     test = pd.read_csv(test_data_path, sep=",")
 
-    train_y = train[target]                          # Y train
-    test_y = test[target]                            # Y test
+    train_y = train[target]
+    test_y = test[target]
 
-    train_x = train.drop(target, axis=1)             # X train
-    test_x = test.drop(target, axis=1)               # X Test
+    train_x = train.drop(target, axis=1)
+    test_x = test.drop(target, axis=1)
 
-    lr = ElasticNet(
-        alpha=alpha, 
-        l1_ratio=l1_ratio, 
-        random_state=random_state)
-    lr.fit(train_x, train_y)                          # Model Fitting
+    ################### MLFLOW ###############################
+    mlflow_config = config["mlflow_config"]
+    remote_server_uri = mlflow_config["remote_server_uri"]
 
-    predicted_qualities = lr.predict(test_x)
-    
-    (rmse, mae, r2) = eval_metrics(test_y, predicted_qualities)            # Returns rmse,mae,r2 score
+    mlflow.set_tracking_uri(remote_server_uri)
 
-    print("Elasticnet model (alpha=%f, l1_ratio=%f):" % (alpha, l1_ratio))
-    print("  RMSE: %s" % rmse)
-    print("  MAE: %s" % mae)
-    print("  R2: %s" % r2)
+    mlflow.set_experiment(mlflow_config["experiment_name"])
 
-#####################################################
-    scores_file = config["reports"]["scores"]                            # Reading from the params.yml file
-    params_file = config["reports"]["params"]
+    with mlflow.start_run(run_name=mlflow_config["run_name"]) as mlops_run:
+        lr = ElasticNet(
+            alpha=alpha,
+            l1_ratio=l1_ratio,
+            random_state=random_state)
+        lr.fit(train_x, train_y)
 
-    with open(scores_file, "w") as f:
-        scores = {
-            "rmse": rmse,
-            "mae": mae,
-            "r2": r2
-        }
-        json.dump(scores, f, indent=4)
+        predicted_qualities = lr.predict(test_x)
 
-    with open(params_file, "w") as f:
-        params = {
-            "alpha": alpha,
-            "l1_ratio": l1_ratio,
-        }
-        json.dump(params, f, indent=4)
+        (rmse, mae, r2) = eval_metrics(test_y, predicted_qualities)
 
-#####################################################
+        mlflow.log_param("alpha", alpha)
+        mlflow.log_param("l1_ratio", l1_ratio)
 
+        mlflow.log_metric("rmse", rmse)
+        mlflow.log_metric("mae", mae)
+        mlflow.log_metric("r2", r2)
 
-    os.makedirs(model_dir, exist_ok=True)
-    model_path = os.path.join(model_dir, "model.joblib")
+        tracking_url_type_store = urlparse(mlflow.get_artifact_uri()).scheme
 
-    joblib.dump(lr, model_path)
+        if tracking_url_type_store != "file":
+            mlflow.sklearn.log_model(
+                lr,
+                "model",
+                registered_model_name=mlflow_config["registered_model_name"])
+        else:
+            mlflow.sklearn.load_model(lr, "model")
 
 
-
-if __name__=="__main__":
+if __name__ == "__main__":
     args = argparse.ArgumentParser()
     args.add_argument("--config", default="params.yaml")
     parsed_args = args.parse_args()
     train_and_evaluate(config_path=parsed_args.config)
+
+# mlflow server
+# --backend-store-uri sqlite:///mlflow.db
+# --default-artifact-root ./artifacts
+# --host 0.0.0.0 -p 1234
+
+# to initialize a server and on the other window perform dvc repro
+# mlflow server --backend-store-uri sqlite:///mlflow.db --default-artifact-root ./artifacts --host 127.0.0.1 -p 5000
+
+
+
