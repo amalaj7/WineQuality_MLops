@@ -6,6 +6,7 @@ import pytest
 from prediction_service.prediction import form_response, api_response
 import prediction_service
 
+# Test cases to check if anything goes wrong
 input_data = {
     "incorrect_range":
     {"fixed_acidity": 7897897,
@@ -55,7 +56,7 @@ TARGET_range = {
     "max": 8.0
 }
 
-# always start with test_
+# always start with test_ for the test cases
 
 def test_form_response_correct_range(data=input_data["correct_range"]):
     res = form_response(data)
