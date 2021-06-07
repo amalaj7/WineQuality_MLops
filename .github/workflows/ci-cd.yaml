@@ -4,10 +4,11 @@ on:
   push:
     branches:
     - mlflow
+    #- main
   pull_request:
     branches:
     - mlflow
-
+    #- main
 jobs:
   build:
 
