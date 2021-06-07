@@ -76,7 +76,7 @@ build your own package commands-
 python setup.py sdist bdist_wheel
 ```
 
-
+MLFLOW Server 
 ```bash
 # to initialize a server and on the other terminal perform dvc repro to see the experiments 
 # This will create a sqllite db , model tracking in UI form .
